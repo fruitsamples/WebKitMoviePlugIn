@@ -52,14 +52,15 @@
 
 - (void)setArguments:(NSDictionary *)arguments
 {
-    [arguments copy];
-    [_arguments release];
-    _arguments = arguments;
+    if (arguments != _arguments) {
+        [_arguments release];
+        _arguments = [arguments copy];
+    }
 }
 
 - (void)webPlugInInitialize
 {
-    [self showController:YES adjustingSize:NO];
+    [self setControllerVisible:YES];
 }
 
 - (void)webPlugInStart
@@ -71,18 +72,18 @@
         if (URLString != nil && [URLString length] != 0) {
             NSURL *baseURL = [_arguments objectForKey:WebPlugInBaseURLKey];
             NSURL *URL = [NSURL URLWithString:URLString relativeToURL:baseURL];
-            NSMovie *movie = [[NSMovie alloc] initWithURL:URL byReference:NO];
+            QTMovie *movie = [[QTMovie alloc] initWithURL:URL error:nil];
             [self setMovie:movie];
             [movie release];
         }
     }
     
-    [self start:self];
+    [self play:self];
 }
 
 - (void)webPlugInStop
 {
-    [self stop:self];
+    [self pause:self];
 }
 
 - (void)webPlugInDestroy
@@ -111,6 +112,11 @@
     return YES;
 }
 
+- (NSArray *)attributeKeys
+{
+    return [NSArray arrayWithObject:@"muted"];
+}
+
 - (id)objectForWebScript
 {
     return self;
@@ -118,12 +124,22 @@
 
 - (void)play
 {
-    [self start:nil];
+    [self play:nil];
 }
 
 - (void)pause
 {
-    [self stop:nil];
+    [self pause:nil];
+}
+
+- (BOOL)muted
+{
+    return [[self movie] muted];
+}
+
+- (void)setMuted:(BOOL)muted
+{
+    [[self movie] setMuted:muted];
 }
 
 @end
